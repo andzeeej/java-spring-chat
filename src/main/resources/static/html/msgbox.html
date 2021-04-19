@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Message box</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/layui/css/layui.css">
+    <style>
+        .layim-msgbox {
+            margin: 15px;
+        }
+
+        .layim-msgbox li {
+            position: relative;
+            margin-bottom: 10px;
+            padding: 0 130px 10px 60px;
+            padding-bottom: 10px;
+            line-height: 22px;
+            border-bottom: 1px dotted #e2e2e2;
+        }
+
+        .layim-msgbox .layim-msgbox-tips {
+            margin: 0;
+            padding: 10px 0;
+            border: none;
+            text-align: center;
+            color: #999;
+        }
+
+        .layim-msgbox .layim-msgbox-system {
+            padding: 0 10px 10px 10px;
+        }
+
+        .layim-msgbox li p span {
+            padding-left: 5px;
+            color: #999;
+        }
+
+        .layim-msgbox li p em {
+            font-style: normal;
+            color: #FF5722;
+        }
+
+        .layim-msgbox-avatar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 50px;
+        }
+
+        .layim-msgbox-user {
+            padding-top: 5px;
+        }
+
+        .layim-msgbox-content {
+            margin-top: 3px;
+        }
+
+        .layim-msgbox .layui-btn-small {
+            padding: 0 15px;
+            margin-left: 5px;
+        }
+
+        .layim-msgbox-btn {
+            position: absolute;
+            right: 0;
+            top: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<ul class="layim-msgbox" id="LAY_view"></ul>
+
+<textarea title="Message template" id="LAY_tpl" style="display:none;">
+{{# layui.each(d.data, function(index, item){
+  if(item.from){ }}
+    <li data-uid="{{ item.from }}" data-fromGroup="{{ item.from_group }}" data-messageBoxId="{{item.id}}">
+      <a href="/u/{{ item.from }}/" target="_blank">
+        <img src="{{ item.user.avatar }}" class="layui-circle layim-msgbox-avatar">
+      </a>
+      <p class="layim-msgbox-user">
+        <a href="/u/{{ item.from }}/" target="_blank">{{ item.user.username||'' }}</a>
+        <span>{{ item.time }}</span>
+      </p>
+      <p class="layim-msgbox-content">
+        {{ item.content }} 
+        <span>{{ item.remark ? 'postscript: '+item.remark : '' }}</span>
+      </p>
+      <p class="layim-msgbox-btn">
+      {{#  if(item.read === 'Untreated'){ }}
+      	{{#  if(item.type === 'friend'){ }}
+	  		<button class="layui-btn layui-btn-small" data-type="agreeAddFriend">Agree</button>
+        	<button class="layui-btn layui-btn-small layui-btn-primary" data-type="refuseAddFriend">Reject</button>
+      	{{#  } else if(item.type === 'group'){ }}
+      		<button class="layui-btn layui-btn-small" data-type="agreeAddGroup">Agree</button>
+        	<button class="layui-btn layui-btn-small layui-btn-primary" data-type="refuseAddGroup">Reject</button>
+      	{{#  } }}  
+	  {{#  } else if(item.read === 'Agree'){ }}
+			Approved
+	  {{#  } else if(item.read === 'Reject'){ }}
+	  	<em>Rejected</em>
+	  {{# } }}   
+      </p>
+    </li>
+  {{# } else { }}
+    <li class="layim-msgbox-system">
+      <p><em>System：</em>{{ item.content }}<span>{{ item.time }}</span></p>
+    </li>
+  {{# }
+}); }}
+</textarea>
+<script src="/static/layui/layui.js"></script>
+<script>
+    layui.use(['layim', 'flow'], function () {
+        var layim = parent.layim
+            , layer = layui.layer
+            , laytpl = layui.laytpl
+            , $ = layui.jquery
+            , flow = layui.flow;
+
+        var socket = parent.socket;
+        var cache = {}; //Used to temporarily record the requested data
+        //Request messag
+        var renderMsg = function (page, callback) {
+            //In actual deployment, please change the following getmsg.json to your interface address.
+            $.get('/addMsg/findAddInfo', {page: page || 1}, function (res) {
+                if (res.code != 0) {
+                    return layer.msg(res.msg);
+                }
+                //Record source user information
+                layui.each(res.data.list, function (index, item) {
+                    cache[item.from] = item.user;
+                });
+                callback && callback(res.data.list, res.data.pages);
+            }, "json");
+        };
+
+        //Message flow
+        flow.load({
+            elem: '#LAY_view' //Stream loading container
+            , isAuto: false
+            , end: '<li class="layim-msgbox-tips">No more new news</li>'
+            , done: function (page, next) { //Load next page
+                renderMsg(page, function (data, pages) {
+                    var html = laytpl(LAY_tpl.value).render({
+                        data: data
+                        , page: page
+                    });
+                    next(html, page < pages);
+                });
+            }
+        });
+
+        //operating
+        var active = {
+            //Refuse to add group
+            refuseAddGroup: function (othis) {
+                var li = othis.parents('li'), uid = li.data('uid'), messageBoxId = li.data('messageboxid');
+                layer.confirm("Confirm rejection?", {icon: 2, title: "prompt"}, function (index) {
+
+                    //Refuse to add group
+                    socket.emit('refuseAddGroup', {toUid: uid, messageBoxId: messageBoxId},
+                        function (data) {
+                            othis.parent().html('<em>Rejected</em>');
+                        });
+                    layer.close(index);
+                });
+            },
+            //Agree to add group
+            agreeAddGroup: function (othis) {
+                var li = othis.parents('li')
+                    , uid = li.data('uid')
+                    , from_group = li.data('fromgroup')
+                    , messageBoxId = li.data('messageboxid');
+
+                //Agree that the user joins the group
+                socket.emit('agreeAddGroup', {toUid: uid, groupId: from_group, messageBoxId: messageBoxId},
+                    function (data) {
+                    othis.parent().html('Approved');
+                });
+            },
+            //Agree to add a friend
+            agreeAddFriend: function (othis) {
+                var li = othis.parents('li')
+                    , uid = li.data('uid')
+                    , from_group = li.data('fromgroup')
+                    , user = cache[uid]
+                    , messageBoxId = li.data('messageboxid');
+                //Select group
+                parent.layui.layim.setFriendGroup({
+                    type: 'friend'
+                    , username: user.username
+                    , avatar: user.avatar
+                    , group: parent.layui.layim.cache().friend //Get friend group data
+                    , submit: function (group, index) {
+                        //In actual deployment, please open the following note and change to your interface address
+                        $.post('/user/agreeFriend', {
+                            uid: uid //User ID
+                            , from_group: from_group //Partner group set by the other party
+                            , group: group //My friend grouping
+                            , messageBoxId: messageBoxId
+                        }, function (res) {
+                            if (res.code != 0) {
+                                return layer.msg(res.msg);
+                            }
+                            layer.msg(res.msg);
+                            //Append friends to the main panel
+                            parent.layui.layim.addList({
+                                type: 'friend'
+                                , avatar: user.avatar //Friend avatar
+                                , username: user.username //Friend nickname
+                                , groupid: group //Group id
+                                , id: uid //Friend ID
+                                , sign: user.sign //Friend signature
+                            });
+                            //Inform the other party to add me
+                            socket.send(JSON.stringify({
+                                type: "agreeAddFriend",
+                                mine: layim.cache().mine,
+                                to: {"id": uid},
+                                msg: '{"group":' + from_group + '}'
+                            }));
+                            parent.layer.close(index);
+                            othis.parent().html('Approved');
+                        }, "json");
+
+                    }
+                });
+            }
+
+            //Refuse to add friends
+            , refuseAddFriend: function (othis) {
+                var li = othis.parents('li')
+                    , messageBoxId = li.data('messageboxid');
+
+                layer.confirm('Are you sure to refuse?？', function (index) {
+                    $.post('/user/refuseFriend', {
+                        messageBoxId: messageBoxId
+                    }, function (res) {
+                        if (res.code != 0) {
+                            return layer.msg(res.msg);
+                        }
+                        layer.close(index);
+                        othis.parent().html('<em>Rejected</em>');
+                    }, "json");
+                });
+            }
+        };
+
+        $('body').on('click', '.layui-btn', function () {
+            var othis = $(this), type = othis.data('type');
+            active[type] ? active[type].call(this, othis) : '';
+        });
+    });
+</script>
+</body>
+</html>

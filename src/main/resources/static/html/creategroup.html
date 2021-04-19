@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Create group</title>
+<link rel="stylesheet" href="/static/layui/css/layui.css"/>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico"/>
+<script src="/static/layui/layui.js"></script>
+
+<style type="text/css">
+.layui-form{margin-left: 20px;padding-top: 20px;}
+</style>
+</head>
+<body>
+	<div class="layui-form layui-form-pane">
+		<div class="layui-form-item">
+			<label for="groupname" class="layui-form-label">Group name</label>
+			<div class="layui-input-inline">
+				<input type="text" id="groupname" name="groupname" autocomplete="off" class="layui-input" style="width: 250px;">
+			</div>				
+		</div>
+		
+		<div class="layui-form-item">
+            <div class="site-demo-upload">
+            	<label for="avatar" class="layui-form-label">Group avatar</label>
+                <div class="site-demo-upbar">
+                     <input name="file" class="layui-upload-file" id="avatar" type="file">
+
+                    <img class="layui-upload-img" style="width: 38px;height: 38px;">
+
+                </div>
+            </div>
+         </div>
+           
+         <div class="layui-form-item fly-form-app">
+             Note: Uploaded images cannot exceed 500kb
+         </div>
+         <div class="layui-form-item">
+             <button class="layui-btn" id="btn">Confirm submission</button>
+         </div>
+	</div>
+</body>
+<script type="text/javascript">
+	layui.use(['jquery', 'layer', 'form', 'upload',],function() {
+		var $ = layui.jquery, form = layui.form(), layer = layui.layer,upload = layui.upload;
+		layui.upload({
+			url: '/user/upload',
+			methos: 'post',
+			before: function(input){
+				console.log(input);
+			},
+			success: function(res){
+				console.log(res); //Upload successful return value, must be in json format
+                $(".layui-upload-img").attr("src",res.data.src);
+			}
+		});
+		$("#btn").click(function () {
+            $.post('/group/creat', {'avatar': $(".layui-upload-img").attr("src"),'name':$("#groupname").val()}, function (res) {
+                //Suppose this is an iframe page
+                var index = parent.layer.getFrameIndex(window.name); //First get the index of the current iframe layer
+                parent.layer.close(index); //Execute again
+            });
+        });
+	});
+
+
+
+</script>
+</html>

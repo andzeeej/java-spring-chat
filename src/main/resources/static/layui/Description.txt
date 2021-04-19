@@ -1,0 +1,35 @@
+﻿===============
+   Directory description
+===============
+
+The ./layui directory is the compressed code (including LayIM)
+Layui source code in ./source/layui directory (including LayIM source code, standard version does not have this directory)
+
+===============
+   Instructions for use
+===============
+
+LayIM is based on the layui module system, so what you get is actually a layui framework that includes LayIM. The difference is that the open source version of layui does not include LayIM. After the donation, decompress the zip file you obtained, and put the entire layout file of layui into your project, no need to make any changes to its code (convenient for the next upgrade). Then you just need to introduce the following two files.
+
+./layui/css/layui.css
+./layui/layui.js
+
+
+===============
+   Official website document
+===============
+
+Official website: http://layim.layui.com/
+Interface documentation: http://www.layui.com/doc/layim.html
+Authorization channel: http://fly.layui.com/auth/get/
+
+
+===============
+   About copyright
+===============
+
+LayIM is not currently an open source product (it may be open source in the future), so if you get LayIM through a donation channel, you can set the copyright: true in layer.config to remove the information about the LayIM main panel, which means you have been authorized. Of course, if you want to keep it friendly, we are also very welcome. If you get LayIM through a non-donor channel, we won't pursue it, but don't sell it, this is the only red line.
+
+In addition, once again, LayIM is not open source, but layui is completely free and open source. LayIM is one of our few products that accepts fees. Because the source of certain funds is a strong guarantee for the sustainable development of our entire development stream. Still the same sentence, if you are disgusted with LayIM's "charge", please ignore its existence. Even if no one pays for LayIM, we will still stick to the original intention: to bring your users closer to the web through a minimalist experience.
+
+The author of LayIM is a wise man, and the final interpretation of copyright belongs to him.

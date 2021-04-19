@@ -1,0 +1,46 @@
+﻿# v3.0.1 Pro version 2016.12.10
+
+* The event body of the extension toolbar adds a second parameter: send, which is used for automatic sending, rather than being inserted into the editor.
+* The third object of the extension toolbar is added to the event parameter: obj, which is used to obtain the data of the current chat window, elem, data, etc.
+* layim.getMessage() adds the support of the message id:cid parameter, which will be assigned to the data-cid of li to complete some message operations (such as revocation).
+* layim.getMessage() adds the fromid parameter, which is the id of the source of the message, which can be used to automatically solve some problems when the browser has multiple windows.
+
+* Fixed bug where chat history was saved repeatedly when opening multiple browser windows
+* Fix bugs in mobile version click image and file upload error
+* Solve the problem of uploading a partial format file, which is directly previewed by the browser when clicked and cannot be downloaded.
+
+
+---
+
+# v3.0 Pro Version 2016.12.07
+
+* The latest Layui provides strong support
+* Added chat panel to maximize display function
+* Add chat panel to drag the bottom right corner to adjust the window size function, is it a bunker ^_^
+* Built-in LayIM mobile session interface, the interface is almost identical to the PC version
+
+* Added extended chat panel toolbar interface
+* Added desktop message reminder (ie reminders outside the browser)
+* Added message sound reminder function
+* Added pop-up panel for adding friends/groups
+* Added built-in template for "message box" and "chat record"
+* Added "message box" message number reminder function (only for friends, group application system messages)
+* Added main panel to directly modify the signature function
+* Add the status area of ​​the friend chat panel, through the method layim.setChatStatus(str), which can be used to display: the input status of the other party, online offline status, etc.
+* Added system message support for chat area, such as xxx join group. (This function will only be displayed when the chat window is open)
+* Added group chat private group session support
+* Add friends to gray, and cancel the gray interface
+* Added "message box" entry at the bottom of the main panel
+* Added a built-in background image
+* Added layim.config() parameter tool for extending chat panel toolbar
+* Added layim.config() parameter initSkin for initial default background settings
+* Added layim.config() parameter notice to control whether to enable desktop message reminder, which is enabled by default.
+* Added layim.config() parameter voice, used to set the message sound source, and play the built-in sound by default. If not, set false
+
+* Pictures and files will be sent automatically if they are uploaded successfully.
+* The init parameter of layim.config() supports direct assignment list data, and still supports the ajax interface configuration mode.
+* Remove the mine parameter of layim.config() and replace it with mine in init
+* Init initialization information in the friend collection, the new status field is added, if the value is offline, offline, online is online
+* Optimize code for message shortcuts
+* Remove the default selected blue background by double clicking on the panel
+* Perfection of many style details
